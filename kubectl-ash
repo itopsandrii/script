@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Check for correct number of arguments
+if [ $# -ne 3 ]; then
+  echo "Usage: $0 <namespace> <kubectl-command> <resource-type>"
+  echo "Example: $0 my-namespace \"top pod\" pod"
+  exit 1
+fi
+# Assign command-line arguments
+RESOURCE_TYPE=$3        # e.g., pod, node
+NAMESPACE=$2            # The Kubernetes namespace
+KUBECTL_CMD=$1          # e.g., "top"
+
+# Print headers
+echo "Resource Type: $RESOURCE_TYPE"
+echo "Namespace    : $NAMESPACE"
+echo "------------------------------------------------------------------------------"
+printf "%-60s %-10s %-10s\n" "Name" "CPU" "Memory"
+echo "------------------------------------------------------------------------------"
+
+# Get and display resource usage
+kubectl $KUBECTL_CMD $RESOURCE_TYPE -n $NAMESPACE | tail -n +2 | while read line
+do
+  # Extract CPU and memory usage from the output
+  NAME=$(echo $line | awk '{print $1}')
+  CPU=$(echo $line | awk '{print $2}')
+  MEMORY=$(echo $line | awk '{print $3}')
+
+  # Output the statistics to the console
+  printf "%-60s %-10s %-10s\n" "$NAME" "$CPU" "$MEMORY"
+done
